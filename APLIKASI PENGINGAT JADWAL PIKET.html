@@ -1,0 +1,328 @@
+File: "index.html"
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pengingat Jadwal Piket XI-8</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background: #f3f6fb;
+            color: #222;
+        }
+
+        header {
+            background: linear-gradient(135deg, #4facfe, #00c6ff);
+            color: white;
+            text-align: center;
+            padding: 30px 15px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 30px;
+        }
+
+        header p {
+            margin: 8px 0 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 25px auto;
+            padding: 0 15px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .today {
+            text-align: center;
+        }
+
+        .today h2 {
+            margin-bottom: 5px;
+            color: #168cff;
+        }
+
+        .form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        input, select, button {
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 15px;
+        }
+
+        button {
+            background: #168cff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0875d1;
+        }
+
+        .jadwal {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .hari {
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 15px;
+            background: #fafafa;
+        }
+
+        .hari h3 {
+            color: #168cff;
+            margin-top: 0;
+        }
+
+        .orang {
+            background: #eaf5ff;
+            padding: 9px;
+            border-radius: 7px;
+            margin: 7px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .hapus {
+            background: #ff5252;
+            padding: 5px 8px;
+            font-size: 12px;
+        }
+
+        .kosong {
+            color: #888;
+            font-size: 14px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #777;
+        }
+
+        @media (max-width: 600px) {
+            .form {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>📚 Pengingat Jadwal Piket</h1>
+    <p>Zumrotun Nisa • Santika XI-8</p>
+</header>
+
+<div class="container">
+
+    <div class="card today">
+        <h2 id="hariIni">Hari ini</h2>
+        <p id="tanggal"></p>
+        <div id="pengingat"></div>
+    </div>
+
+    <div class="card">
+        <h2>➕ Tambah Jadwal Piket</h2>
+
+        <div class="form">
+            <select id="hari">
+                <option>Senin</option>
+                <option>Selasa</option>
+                <option>Rabu</option>
+                <option>Kamis</option>
+                <option>Jumat</option>
+            </select>
+
+            <input type="text" id="nama" placeholder="Nama siswa">
+
+            <button onclick="tambahJadwal()">Tambah Jadwal</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>📅 Jadwal Piket</h2>
+        <div class="jadwal" id="daftarJadwal"></div>
+    </div>
+
+</div>
+
+<footer>
+    Website Pengingat Piket — Zumrotun Nisa | XI-8
+</footer>
+
+<script>
+
+const daftarHari = [
+    "Senin",
+    "Selasa",
+    "Rabu",
+    "Kamis",
+    "Jumat",
+];
+
+let jadwal = JSON.parse(localStorage.getItem("jadwalPiket")) || {
+    Senin: [],
+    Selasa: [],
+    Rabu: [],
+    Kamis: [],
+    Jumat: [],
+};
+
+function tampilkanJadwal() {
+
+    const tempat = document.getElementById("daftarJadwal");
+
+    tempat.innerHTML = "";
+
+    daftarHari.forEach(hari => {
+
+        let isi = "";
+
+        if (jadwal[hari].length === 0) {
+            isi = `<p class="kosong">Belum ada jadwal.</p>`;
+        } else {
+
+            jadwal[hari].forEach((nama, index) => {
+
+                isi += `
+                    <div class="orang">
+                        <span>${nama}</span>
+
+                        <button
+                            class="hapus"
+                            onclick="hapusJadwal('${hari}', ${index})">
+                            Hapus
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        tempat.innerHTML += `
+            <div class="hari">
+                <h3>${hari}</h3>
+                ${isi}
+            </div>
+        `;
+    });
+}
+
+function tambahJadwal() {
+
+    const hari = document.getElementById("hari").value;
+    const nama = document.getElementById("nama").value.trim();
+
+    if (nama === "") {
+        alert("Masukkan nama siswa terlebih dahulu!");
+        return;
+    }
+
+    jadwal[hari].push(nama);
+
+    localStorage.setItem(
+        "jadwalPiket",
+        JSON.stringify(jadwal)
+    );
+
+    document.getElementById("nama").value = "";
+
+    tampilkanJadwal();
+    tampilkanPengingat();
+}
+
+function hapusJadwal(hari, index) {
+
+    if (confirm("Hapus jadwal ini?")) {
+
+        jadwal[hari].splice(index, 1);
+
+        localStorage.setItem(
+            "jadwalPiket",
+            JSON.stringify(jadwal)
+        );
+
+        tampilkanJadwal();
+        tampilkanPengingat();
+    }
+}
+
+function tampilkanPengingat() {
+
+    const sekarang = new Date();
+
+    const namaHari = [
+        "Minggu",
+        "Senin",
+        "Selasa",
+        "Rabu",
+        "Kamis",
+        "Jumat",
+    ];
+
+    const hari = namaHari[sekarang.getDay()];
+
+    document.getElementById("hariIni").innerText =
+        "📢 Piket Hari " + hari;
+
+    document.getElementById("tanggal").innerText =
+        sekarang.toLocaleDateString("id-ID", {
+            day: "numeric",
+            month: "long",
+            year: "numeric"
+        });
+
+    const pengingat = document.getElementById("pengingat");
+
+    if (jadwal[hari] && jadwal[hari].length > 0) {
+
+        pengingat.innerHTML =
+            "<b>Petugas piket hari ini:</b><br>" +
+            jadwal[hari].join(", ");
+
+    } else {
+
+        pengingat.innerHTML =
+            "Tidak ada jadwal piket hari ini.";
+    }
+}
+
+tampilkanJadwal();
+tampilkanPengingat();
+
+</script>
+
+</body>
+</html>
